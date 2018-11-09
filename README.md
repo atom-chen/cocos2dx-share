@@ -34,23 +34,26 @@
 	如果name不为空，则根据name去armatureDataManager中查找是否存在对应的ArmatureData、AnimationData；
 	如果查到数据，则成功创建CCArmature，否则失败；
 ---
-#####注意事项：
-- 1.csb中的数据和动画纹理数据是分开保存的，可以保存csb数据，然后将动画纹理清除掉，
-下次创建的时候再去读取纹理即可，当然这部分引擎本身是不支持的，我们修改后已支持。
-- 2.异步加载部分的优化，
-引擎原版中的异步加载原理：
-&ensp;&ensp;1).开启一个线程，内部无限循环的判断是否存在需要加载的csb文件，如果有，
-就在子线程中读取并分析抽取出ArmatureData、AnimationData、TextureData存到armatureDataManager中；
-&ensp;&ensp;2).csb文件在子线程读取完成后会抛到ui线程中加载对应的plist到SpriteFrameCache中(此部分会阻塞游戏)。
-&ensp;&ensp;3).通知脚本端，有一个csb文件已经加载完成。
-修改后的异步加载流程：
-在armatureDataManager中查找是否存在对应的csb数据，
-&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;如果存在：
-&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;判断对应的plist是否已经加载：
-&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;是：
-&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;就直接返回通知脚本端
-&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;否：
-&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;开启子线程加载plist，成功后通知脚本端
-&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;如果不存在：
-&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;为每一个csb开启一个单独的线程，在子线程中读取并分析抽取出ArmatureData、AnimationData、TextureData存到armatureDataManager中；同时，会在该线程中加载对应的plist到SpriteFrameCache中；最后通知脚本端
-* 3.优化后对csb文件本身也做了缓存，也就是节约了每次解析csb的时间，如果想清除这个缓存，只需要zc.dispatchEvent({name = "CLEAR_CACHED_CSB_DATA"})
+#### 注意事项：
+```
+ 1.csb中的数据和动画纹理数据是分开保存的，可以保存csb数据，然后将动画纹理清除掉，下次创建的时候再去读取纹理即可，
+ 当然这部分引擎本身是不支持的，我们修改后已支持。
+ 
+ 2.异步加载部分的优化。
+      引擎原版中的异步加载原理：
+	  1).开启一个线程，内部无限循环的判断是否存在需要加载的csb文件，如果有，就在子线程中读取并分析抽取出ArmatureData、AnimationData、TextureData存到armatureDataManager中；
+	  2).csb文件在子线程读取完成后会抛到ui线程中加载对应的plist到SpriteFrameCache中(此部分会阻塞游戏)。
+	  3).通知脚本端，有一个csb文件已经加载完成。
+      修改后的异步加载流程：
+	  1).在armatureDataManager中查找是否存在对应的csb数据，
+	      如果存在：
+	             判断对应的plist是否已经加载：
+	                  是：
+	                      就直接返回通知脚本端
+	                  否：
+	                      开启子线程加载plist，成功后通知脚本端
+	      如果不存在：
+	             为每一个csb开启一个单独的线程，在子线程中读取并分析抽取出ArmatureData、AnimationData、TextureData存到armatureDataManager中；同时，会在该线程中加载对应的plist到SpriteFrameCache中；最后通知脚本端。
+		     
+ 3.优化后对csb文件本身也做了缓存，也就是节约了每次解析csb的时间，如果想清除这个缓存，只需要zc.dispatchEvent({name = "CLEAR_CACHED_CSB_DATA"})
+```
