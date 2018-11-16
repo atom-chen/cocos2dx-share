@@ -1,7 +1,7 @@
 zc = zc or {}
 helper = helper or {}
 
-
+--判断一个节点是否可见，如果自身invisible就直接返回false，如果自身visible，就递归寻找它的父节点
 function helper.isAllParentsVisible(node)
     local isVisible = true
     while node ~= nil do
@@ -14,9 +14,7 @@ function helper.isAllParentsVisible(node)
     return isVisible
 end
 
-
-
-local function _releaseMemory(  )
+local function _releaseMemory()
     cc.SpriteFrameCache:getInstance():removeUnusedSpriteFrames()
     zc.getDirector():getTextureCache():removeUnusedTextures()
     collectgarbage("collect")
@@ -35,7 +33,7 @@ helper.reloadAllFile = function()
     _releaseMemory(true)
 end
 
-
+-- 为了尽量不修改引擎源码，在这里做了字符串截取的操作获取当前纹理占用的总内存
 helper.getCachedTextureInfo = function()
     local textureCache = cc.Director:getInstance():getTextureCache()
     local memInfo = textureCache:getCachedTextureInfo()

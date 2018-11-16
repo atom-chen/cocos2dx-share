@@ -60,18 +60,17 @@ end
 @reconnectTimes          网络请求失败后重新连接的次数(0不重新链接)
 ]]
 function ZCHttp:requestAsyncWithParams(params)
-    print("ZCHttp:requestAsyncWithParams")
     local url                 = tostring(params.url)--[[请求的网络地址(完整地址)]]
     local method              = params.method --[[请求的方式]]
     local startCallback       = params.startCallback--[[开始请求时的回调函数]]
     local successCallback     = params.successCallback--[[请求成功的回调函数]]
     local failedCallback      = params.failedCallback--[[请求失败的回调函数(此处的失败一般是指网络超时或者服务器返回的数据无法解析成json)]]
-    local targetNeedsToRetain = params.targetNeedsToRetain--[[请求时需要被retain的对象]]
+    local targetNeedsToRetain = params.targetNeedsToRetain--[[请求时需要被retain的对象，请求返回后会自动release一次]]
     local postData            = params.postData--[[post请求时需要的数据]]
     local loadingType         = params.loadingType --[[]]
-    local targetNode          = params.targetNode--[[用于在网络返回时判断是否还需要处理数据的标记，如果标记不存在了，则不需要处理网络数据并且也无需提示网络不好]]
-    local loadingNode         = params.loadingNode
-    local loadingParent       = params.loadingParent
+    local targetNode          = params.targetNode--[[用于在网络返回时判断是否还需要处理数据的标记，如果标记(一般是当前的layer或者scene)不存在了，则不需要处理网络数据并且也无需提示网络不好]]
+    local loadingNode         = params.loadingNode--[[自定义loading界面]]
+    local loadingParent       = params.loadingParent--[[loading界面依附的父节点]]
     local reconnectTimes      = params.reconnectTimes --[[如果网络失败，重新连接的次数(0或nil代表不需要重试)]]
     local timeoutForRead      = params.timeoutForRead 
     local timeoutForConnect   = params.timeoutForConnect 
@@ -127,7 +126,6 @@ function ZCHttp:requestAsyncWithParams(params)
     end
     local _url = url
     _doRequest = function()
-        print("开始创建网络请求")
         if not tolua.isnull(targetNeedsToRetain) then targetNeedsToRetain:retain() end
         local xhr               = cc.XMLHttpRequest:new()
         xhr.timeoutForConnect   = timeoutForConnect
